@@ -25,20 +25,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 Application::Application()
 {
-	_hInst = nullptr;
-	_hWnd = nullptr;
-	_driverType = D3D_DRIVER_TYPE_NULL;
-	_featureLevel = D3D_FEATURE_LEVEL_11_0;
-	_pd3dDevice = nullptr;
-	_pImmediateContext = nullptr;
-	_pSwapChain = nullptr;
-	_pRenderTargetView = nullptr;
-	_pVertexShader = nullptr;
-	_pPixelShader = nullptr;
-	_pVertexLayout = nullptr;
-	_pVertexBuffer = nullptr;
-	_pIndexBuffer = nullptr;
-	_pConstantBuffer = nullptr;
+    _hInst = nullptr;
+    _hWnd = nullptr;
+    _driverType = D3D_DRIVER_TYPE_NULL;
+    _featureLevel = D3D_FEATURE_LEVEL_11_0;
+    _pd3dDevice = nullptr;
+    _pImmediateContext = nullptr;
+    _pSwapChain = nullptr;
+    _pRenderTargetView = nullptr;
+    _pVertexShader = nullptr;
+    _pPixelShader = nullptr;
+    _pVertexLayout = nullptr;
+    _pVertexBuffer = nullptr;
+    _pIndexBuffer = nullptr;
+    _pConstantBuffer = nullptr;
 }
 
 Application::~Application()
@@ -66,10 +66,15 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     }
 
 	// Initialize the world matrix
-	XMStoreFloat4x4(&_world, XMMatrixIdentity());
+    for (int i = 0; i < 5; i++)
+    {
+        XMFLOAT4X4 world;
+        XMStoreFloat4x4(&world, XMMatrixIdentity());
+        _worldMatrices.push_back(world);
 
+    }
     // Initialize the view matrix
-	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -3.0f, 0.0f);
+	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -15.0f, 0.0f);
 	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
@@ -160,9 +165,11 @@ HRESULT Application::InitVertexBuffer()
         { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
         { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
         { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f) }
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.5f, 0.5f, 1.0f, 1.0f) }
+
+
         //{ XMFLOAT3( 2.0f, -2.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-       // { XMFLOAT3(-2.0f, -2.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) }
+        //{ XMFLOAT3(-2.0f, -2.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) }
     };
 
     D3D11_BUFFER_DESC bd;
@@ -195,11 +202,11 @@ HRESULT Application::InitIndexBuffer()
         0,1,2,
         2,1,3,
         //left face
-        6,2,0,
-        6,0,4,
+        0,2,6,
+        4,0,6,
         //right face
-        7,5,1,
-        3,7,1,
+        1,5,7,
+        1,7,3,
         //front face
         7,5,4,
         6,7,4,
@@ -342,6 +349,20 @@ HRESULT Application::InitDevice()
     sd.SampleDesc.Quality = 0;
     sd.Windowed = TRUE;
 
+    D3D11_TEXTURE2D_DESC depthStencilDesc;
+
+    depthStencilDesc.Width = _WindowWidth;
+    depthStencilDesc.Height = _WindowHeight;
+    depthStencilDesc.MipLevels = 1;
+    depthStencilDesc.ArraySize = 1;
+    depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilDesc.SampleDesc.Count = 1;
+    depthStencilDesc.SampleDesc.Quality = 0;
+    depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthStencilDesc.CPUAccessFlags = 0;
+    depthStencilDesc.MiscFlags = 0;
+ 
     for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
     {
         _driverType = driverTypes[driverTypeIndex];
@@ -366,8 +387,9 @@ HRESULT Application::InitDevice()
 
     if (FAILED(hr))
         return hr;
-
-    _pImmediateContext->OMSetRenderTargets(1, &_pRenderTargetView, nullptr);
+    _pd3dDevice->CreateTexture2D(&depthStencilDesc, nullptr, &_depthStencilBuffer);
+    _pd3dDevice->CreateDepthStencilView(_depthStencilBuffer, nullptr, &_depthStencilView);
+    _pImmediateContext->OMSetRenderTargets(1, &_pRenderTargetView, _depthStencilView);
 
     // Setup the viewport
     D3D11_VIEWPORT vp;
@@ -408,13 +430,26 @@ HRESULT Application::InitDevice()
     if (FAILED(hr))
         return hr;
 
+    D3D11_RASTERIZER_DESC wfdesc;
+    ZeroMemory(&wfdesc, sizeof(D3D11_RASTERIZER_DESC));
+    wfdesc.FillMode = D3D11_FILL_WIREFRAME;
+    wfdesc.CullMode = D3D11_CULL_NONE;
+    hr = _pd3dDevice->CreateRasterizerState(&wfdesc, &_wireFrame);
+    _pImmediateContext->RSSetState(_wireFrame);
+
+    D3D11_RASTERIZER_DESC soliddesc;
+    ZeroMemory(&soliddesc, sizeof(D3D11_RASTERIZER_DESC));
+    soliddesc.FillMode = D3D11_FILL_SOLID;
+    soliddesc.CullMode = D3D11_CULL_BACK;
+    hr = _pd3dDevice->CreateRasterizerState(&soliddesc, &_solidObj);
+    _pImmediateContext->RSSetState(_solidObj);
+
     return S_OK;
 }
 
 void Application::Cleanup()
 {
     if (_pImmediateContext) _pImmediateContext->ClearState();
-
     if (_pConstantBuffer) _pConstantBuffer->Release();
     if (_pVertexBuffer) _pVertexBuffer->Release();
     if (_pIndexBuffer) _pIndexBuffer->Release();
@@ -425,6 +460,9 @@ void Application::Cleanup()
     if (_pSwapChain) _pSwapChain->Release();
     if (_pImmediateContext) _pImmediateContext->Release();
     if (_pd3dDevice) _pd3dDevice->Release();
+    if (_depthStencilView) _depthStencilView->Release();
+    if (_depthStencilBuffer) _depthStencilBuffer->Release();
+    if (_wireFrame) _wireFrame->Release();
 }
 
 void Application::Update()
@@ -444,14 +482,49 @@ void Application::Update()
         if (dwTimeStart == 0)
             dwTimeStart = dwTimeCur;
 
-        t = (dwTimeCur - dwTimeStart) / 1000.0f;
+        t = (dwTimeCur - dwTimeStart) / 10000.0f;
     }
 
     //
     // Animate the cube
     //
-	//XMStoreFloat4x4(&_world, XMMatrixRotationZ(t));
-    XMStoreFloat4x4(&_world, XMMatrixRotationX(t));
+    //rotate on all axis'
+   /* for (int i = 0; i < 4; i++)
+    {
+        XMMATRIX cube = XMMatrixIdentity();
+
+        cube = XMMatrixMultiply(cube, XMMatrixRotationRollPitchYaw(t, t, t));
+        cube = XMMatrixMultiply(cube, XMMatrixTranslation(i, i, i));
+
+        XMStoreFloat4x4(&_worldMatrices[i], cube);
+    }
+    */
+    XMMATRIX sun = XMMatrixIdentity();
+    sun = XMMatrixMultiply(sun, XMMatrixScaling(3,3,3) * XMMatrixTranslation(0, 0, 0) * XMMatrixRotationRollPitchYaw(t*10, t*10, t*10));
+    XMStoreFloat4x4(&_worldMatrices[0], sun);
+
+    XMMATRIX mars = XMMatrixIdentity();
+    mars = XMMatrixMultiply(mars, XMMatrixRotationRollPitchYaw(t * 4, 0, 0) * XMMatrixScaling(.6, .6, .6) * 
+    XMMatrixTranslation(6, 0, 0) * XMMatrixRotationRollPitchYaw(0, t*5, 0));
+    XMStoreFloat4x4(&_worldMatrices[1], mars);
+
+    XMMATRIX earth = XMMatrixIdentity();
+    earth = XMMatrixMultiply(earth, XMMatrixRotationRollPitchYaw(0, 0, t * 6) * XMMatrixScaling(.8, .8, .8) * 
+    XMMatrixTranslation(9, 0, 0) * XMMatrixRotationRollPitchYaw(0, t * 3.5, 0));
+    XMStoreFloat4x4(&_worldMatrices[2], earth);
+
+    XMMATRIX earthMoon = XMMatrixIdentity();
+    //translation are done backwards, so you would read the first to be the last
+    //scale the moon translate the moon to its position relative to the earth, allow the moon to rotate around the earth, 
+    //translate the mmon to the position of the eath and allow the same rotation (so it follows the earths rotatrion around the sun)
+    earthMoon = XMMatrixMultiply(earthMoon, XMMatrixScaling(.125, .125, .125) * XMMatrixTranslation(3,0,0) * 
+    XMMatrixRotationRollPitchYaw(0, t*2, t * 3) * XMMatrixTranslation(9, 0, 0) * XMMatrixRotationRollPitchYaw(0, t * 3.5, 0));
+    XMStoreFloat4x4(&_worldMatrices[3], earthMoon);
+
+    XMMATRIX marsMoon = XMMatrixIdentity();
+    marsMoon = XMMatrixMultiply(marsMoon, XMMatrixScaling(.1, .1, .1) * XMMatrixTranslation(3, 0, 0) * 
+    XMMatrixRotationRollPitchYaw(0, t * 2, t * 4) * XMMatrixTranslation(6, 0, 0) * XMMatrixRotationRollPitchYaw(0, t * 5, 0));
+    XMStoreFloat4x4(&_worldMatrices[4], marsMoon);
 }
 
 void Application::Draw()
@@ -461,29 +534,40 @@ void Application::Draw()
     //
     float ClearColor[4] = {0.0f, 0.125f, 0.3f, 1.0f}; // red,green,blue,alpha
     _pImmediateContext->ClearRenderTargetView(_pRenderTargetView, ClearColor);
+    _pImmediateContext->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	XMMATRIX world = XMLoadFloat4x4(&_world);
-	XMMATRIX view = XMLoadFloat4x4(&_view);
-	XMMATRIX projection = XMLoadFloat4x4(&_projection);
-    //
-    // Update variables
-    //
-    ConstantBuffer cb;
-	cb.mWorld = XMMatrixTranspose(world);
-	cb.mView = XMMatrixTranspose(view);
-	cb.mProjection = XMMatrixTranspose(projection);
+    for (int i = 0; i < 5; i++)
+    {
+        XMMATRIX world = XMLoadFloat4x4(&_worldMatrices[i]);
+        XMMATRIX view = XMLoadFloat4x4(&_view);
+        XMMATRIX projection = XMLoadFloat4x4(&_projection);
+        //
+        // Update variables
+        //
+        ConstantBuffer cb;
+        cb.mWorld = XMMatrixTranspose(world);
+        cb.mView = XMMatrixTranspose(view);
+        cb.mProjection = XMMatrixTranspose(projection);
 
-	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+        _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
-    //
-    // Renders a triangle
-    //
-	_pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
-	_pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
-    _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
-	_pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
-	_pImmediateContext->DrawIndexed(36, 0, 0);        
-
+        //
+        // Renders a triangle
+        //
+        _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
+        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
+        _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
+        _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
+        if (i >= 2)
+        { 
+            _pImmediateContext->RSSetState(_solidObj);
+            _pImmediateContext->DrawIndexed(36, 0, 0);
+        }
+        else {
+            _pImmediateContext->RSSetState(_wireFrame);
+            _pImmediateContext->DrawIndexed(36, 0, 0);
+        }
+    }
     //
     // Present our back buffer to our front buffer
     //

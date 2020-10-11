@@ -6,6 +6,7 @@
 #include <directxmath.h>
 #include <directxcolors.h>
 #include "resource.h"
+#include <vector>
 
 using namespace DirectX;
 
@@ -22,6 +23,7 @@ struct ConstantBuffer
 	XMMATRIX mProjection;
 };
 
+using namespace std;
 class Application
 {
 private:
@@ -42,7 +44,11 @@ private:
 	XMFLOAT4X4              _world;
 	XMFLOAT4X4              _view;
 	XMFLOAT4X4              _projection;
-
+	vector<XMFLOAT4X4>      _worldMatrices;
+	ID3D11DepthStencilView* _depthStencilView;
+	ID3D11Texture2D*        _depthStencilBuffer;
+	ID3D11RasterizerState*  _wireFrame;
+	ID3D11RasterizerState*  _solidObj;
 private:
 	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
 	HRESULT InitDevice();

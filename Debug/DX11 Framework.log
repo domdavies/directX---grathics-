@@ -1,5 +1,4 @@
 ﻿  Application.cpp
-  DX11 Framework.cpp
-  Generating Code...
-Application.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
-  DX11 Framework.vcxproj -> C:\Users\domda\OneDrive\Documents\Github\directX---grathics-\Debug\DX11 Framework.exe
+C:\Users\domda\OneDrive\Desktop\Github\directX---grathics-\Application.cpp(511,176): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\domda\OneDrive\Desktop\Github\directX---grathics-\Application.cpp(517,222): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  DX11 Framework.vcxproj -> C:\Users\domda\OneDrive\Desktop\Github\directX---grathics-\Debug\DX11 Framework.exe
