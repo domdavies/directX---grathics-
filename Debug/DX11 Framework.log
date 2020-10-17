@@ -1,4 +1,4 @@
 ﻿  Application.cpp
-C:\Users\domda\OneDrive\Desktop\Github\directX---grathics-\Application.cpp(511,176): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\domda\OneDrive\Desktop\Github\directX---grathics-\Application.cpp(517,222): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-  DX11 Framework.vcxproj -> C:\Users\domda\OneDrive\Desktop\Github\directX---grathics-\Debug\DX11 Framework.exe
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(641,70): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(649,116): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  DX11 Framework.vcxproj -> C:\Users\domda\Desktop\Github\directX---grathics-\Debug\DX11 Framework.exe

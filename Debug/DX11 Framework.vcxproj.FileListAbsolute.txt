@@ -4,3 +4,5 @@ C:\Users\domda\OneDrive\Documents\Github\directX---grathics-\Debug\DX11 Framewor
 C:\Users\domda\OneDrive\Documents\Github\directX---grathics-\Debug\DX11 Framework.pdb
 C:\Users\domda\OneDrive\Desktop\Github\directX---grathics-\Debug\DX11 Framework.exe
 C:\Users\domda\OneDrive\Desktop\Github\directX---grathics-\Debug\DX11 Framework.pdb
+C:\Users\domda\Desktop\Github\directX---grathics-\Debug\DX11 Framework.exe
+C:\Users\domda\Desktop\Github\directX---grathics-\Debug\DX11 Framework.pdb
