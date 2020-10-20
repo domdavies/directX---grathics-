@@ -629,9 +629,9 @@ HRESULT Application::InitDevice()
 
 	InitIndexBuffer();
 
-    InitPlaneVertexBuffer(20, 20, 21, 21);
+    InitPlaneVertexBuffer(100, 100, 101, 101);
 
-    InitPlaneIndexBuffer(21,21);
+    InitPlaneIndexBuffer(101,101);
 
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -734,7 +734,7 @@ void Application::Update()
     XMStoreFloat4x4(&_worldMatrices[4], marsMoon);
 
     XMMATRIX floor = XMMatrixIdentity();
-    floor = XMMatrixMultiply(floor, XMMatrixScaling(1, 1, 1) * XMMatrixTranslation(0, -8, 0));
+    floor = XMMatrixMultiply(floor, XMMatrixScaling(3, 3, 3) * XMMatrixTranslation(0, -8, 0));
     XMStoreFloat4x4(&_groundPlaneMatrix, floor);
 }
 
@@ -816,8 +816,8 @@ void Application::Draw()
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pGroundPlaneVertexBuffer, &stride, &offset);
     // Set index buffer
     _pImmediateContext->IASetIndexBuffer(_pGroundPlaneIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->RSSetState(_solidObj);
-    _pImmediateContext->DrawIndexed(12000, 0, 0);
+    _pImmediateContext->RSSetState(_wireFrame);
+    _pImmediateContext->DrawIndexed(60000, 0, 0);
     //
     // Present our back buffer to our front buffer
     //
