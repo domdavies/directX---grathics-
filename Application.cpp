@@ -75,11 +75,11 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     }
     // Initialize the view matrix
-	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -15.0f, 0.0f);
-	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, 15.0f, 0.0f);
+	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	XMStoreFloat4x4(&_view, XMMatrixRotationX(-35)*XMMatrixLookAtLH(Eye, At, Up));
+	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(Eye, At, Up));
 
     // Initialize the projection matrix
 	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT) _WindowHeight, 0.01f, 100.0f));
@@ -206,8 +206,8 @@ HRESULT Application::InitVertexBuffer()
 
     if (FAILED(hr))
         return hr;
-
-    SimpleVertex groundPlaneVertices[] =
+    /*
+    SimpleVertex groundPlaneVertices[] = 
     {
         { XMFLOAT3(-1.0f, 0.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
         { XMFLOAT3(-0.5f, 0.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
@@ -248,6 +248,7 @@ HRESULT Application::InitVertexBuffer()
 
     if (FAILED(hr))
         return hr;
+    */
 
 	return S_OK;
 }
@@ -319,7 +320,7 @@ HRESULT Application::InitIndexBuffer()
 
     if (FAILED(hr))
         return hr;
-
+    /*
     WORD groundPlaneIndices[] =
     {
         //first row of Squares
@@ -373,8 +374,93 @@ HRESULT Application::InitIndexBuffer()
 
     if (FAILED(hr))
         return hr;
+    */
 
 	return S_OK;
+}
+
+HRESULT Application::InitPlaneIndexBuffer(int vWidth, int vHeight)
+{
+    HRESULT hr;
+    D3D11_BUFFER_DESC bd;
+    D3D11_SUBRESOURCE_DATA InitData;
+
+    WORD* indices = new WORD[(vWidth - 1) * (vHeight - 1) * 6];
+
+    UINT k = 0;
+    for (UINT i = 0; i < vWidth - 1; ++i)
+    {
+        for (UINT j = 0; j < vHeight - 1; ++j)
+        {
+            indices[k] = i * vHeight + j;
+            indices[k + 1] = i * vHeight + j + 1;
+            indices[k + 2] = (i + 1) * vHeight + j;
+            indices[k + 3] = (i + 1) * vHeight + j;
+            indices[k + 4] = i * vHeight + j + 1;
+            indices[k + 5] = (i + 1) * vHeight + j + 1;
+            k += 6;
+        }
+    }
+
+    ZeroMemory(&bd, sizeof(bd));
+
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(indices) * (vWidth - 1) * (vHeight - 1) * 6;
+    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bd.CPUAccessFlags = 0;
+
+    ZeroMemory(&InitData, sizeof(InitData));
+    InitData.pSysMem = indices;
+    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pGroundPlaneIndexBuffer);
+
+    if (FAILED(hr))
+        return hr;
+
+    return S_OK;
+}
+
+HRESULT Application::InitPlaneVertexBuffer(UINT width, UINT depth, UINT Wverts, UINT Dverts)
+{
+    HRESULT hr;
+    D3D11_BUFFER_DESC bd;
+    D3D11_SUBRESOURCE_DATA InitData;
+
+    float vCount = Wverts * Dverts;
+
+    float hWidth = 0.5 * width;
+    float hDepth = 0.5 * depth;
+
+    float dx = width / (Wverts - 1);
+    float dz = depth / (Dverts - 1);
+
+    SimpleVertex* vertices = new SimpleVertex[vCount];
+
+    for (UINT i = 0; i < Wverts; ++i)
+    {
+        float z = hDepth - i * dz;
+        for (UINT j = 0; j < Dverts; ++j)
+        {
+            float x = -hWidth + j * dx;
+            vertices[i * Dverts + j].Pos = XMFLOAT3(x, 0, z);
+            vertices[i * Dverts + j].Color = XMFLOAT4(1, 0, 0, 0);
+        }
+    }
+
+    ZeroMemory(&bd, sizeof(bd));
+
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(SimpleVertex) * vCount;
+    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bd.CPUAccessFlags = 0;
+
+    ZeroMemory(&InitData, sizeof(InitData));
+    InitData.pSysMem = vertices;
+    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pGroundPlaneVertexBuffer);
+
+    if (FAILED(hr))
+        return hr;
+
+    return S_OK;
 }
 
 HRESULT Application::InitWindow(HINSTANCE hInstance, int nCmdShow)
@@ -543,6 +629,10 @@ HRESULT Application::InitDevice()
 
 	InitIndexBuffer();
 
+    InitPlaneVertexBuffer(20, 20, 21, 21);
+
+    InitPlaneIndexBuffer(21,21);
+
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -614,19 +704,8 @@ void Application::Update()
     }
 
     //
-    // Animate the cube
+    // Animate
     //
-    //rotate on all axis'
-   /* for (int i = 0; i < 4; i++)
-    {
-        XMMATRIX cube = XMMatrixIdentity();
-
-        cube = XMMatrixMultiply(cube, XMMatrixRotationRollPitchYaw(t, t, t));
-        cube = XMMatrixMultiply(cube, XMMatrixTranslation(i, i, i));
-
-        XMStoreFloat4x4(&_worldMatrices[i], cube);
-    }
-    */
     XMMATRIX sun = XMMatrixIdentity();
     sun = XMMatrixMultiply(sun, XMMatrixScaling(3,3,3) * XMMatrixTranslation(0, 0, 0) * XMMatrixRotationRollPitchYaw(t*10, t*10, t*10));
     XMStoreFloat4x4(&_worldMatrices[0], sun);
@@ -655,7 +734,7 @@ void Application::Update()
     XMStoreFloat4x4(&_worldMatrices[4], marsMoon);
 
     XMMATRIX floor = XMMatrixIdentity();
-    floor = XMMatrixMultiply(floor, XMMatrixScaling(10, 10, 10) * XMMatrixTranslation(0, 5, 0) * XMMatrixRotationRollPitchYaw(0,0,0));
+    floor = XMMatrixMultiply(floor, XMMatrixScaling(1, 1, 1) * XMMatrixTranslation(0, -8, 0));
     XMStoreFloat4x4(&_groundPlaneMatrix, floor);
 }
 
@@ -737,8 +816,8 @@ void Application::Draw()
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pGroundPlaneVertexBuffer, &stride, &offset);
     // Set index buffer
     _pImmediateContext->IASetIndexBuffer(_pGroundPlaneIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->RSSetState(_wireFrame);
-    _pImmediateContext->DrawIndexed(96, 0, 0);
+    _pImmediateContext->RSSetState(_solidObj);
+    _pImmediateContext->DrawIndexed(12000, 0, 0);
     //
     // Present our back buffer to our front buffer
     //

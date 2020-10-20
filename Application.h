@@ -23,6 +23,12 @@ struct ConstantBuffer
 	XMMATRIX mProjection;
 };
 
+struct VertexType
+{
+	XMFLOAT3 position;
+	XMFLOAT4 color;
+};
+
 using namespace std;
 class Application
 {
@@ -38,8 +44,8 @@ private:
 	ID3D11VertexShader*     _pVertexShader;
 	ID3D11PixelShader*      _pPixelShader;
 	ID3D11InputLayout*      _pVertexLayout;
-	ID3D11Buffer*           _pVertexBuffer, *_pPyramidVertexBuffer, * _pGroundPlaneVertexBuffer;
-	ID3D11Buffer*           _pIndexBuffer, *_pPyramidIndexBuffer, * _pGroundPlaneIndexBuffer;
+	ID3D11Buffer            *_pVertexBuffer, *_pPyramidVertexBuffer, *_pGroundPlaneVertexBuffer;
+	ID3D11Buffer            *_pIndexBuffer, *_pPyramidIndexBuffer, *_pGroundPlaneIndexBuffer;
 	ID3D11Buffer*           _pConstantBuffer;
 	XMFLOAT4X4              _world;
 	XMFLOAT4X4              _view;
@@ -58,6 +64,8 @@ private:
 	HRESULT InitShadersAndInputLayout();
 	HRESULT InitVertexBuffer();
 	HRESULT InitIndexBuffer();
+	HRESULT InitPlaneIndexBuffer(int vWidth, int vHeight);
+	HRESULT InitPlaneVertexBuffer(UINT width, UINT depth, UINT Wverts, UINT Dverts);
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;
