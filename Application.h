@@ -7,6 +7,7 @@
 #include <directxcolors.h>
 #include "resource.h"
 #include <vector>
+#include "DDSTextureLoader.h"
 
 using namespace DirectX;
 
@@ -14,6 +15,14 @@ struct SimpleVertex
 {
     XMFLOAT3 Pos;
     XMFLOAT4 Color;
+	XMFLOAT2 TexC;
+};
+
+struct SimpleVertexNormal
+{
+	XMFLOAT3 Pos;
+	XMFLOAT4 normal;
+	XMFLOAT2 TexC;
 };
 
 struct ConstantBuffer
@@ -21,6 +30,21 @@ struct ConstantBuffer
 	XMMATRIX mWorld;
 	XMMATRIX mView;
 	XMMATRIX mProjection;
+
+	//describes the colour of tthe object
+	XMFLOAT4 DiffuseMtrl;
+	//describes how much of each colour is reflected of the object
+	XMFLOAT4 DiffuseLight;
+	//vector that points in the direction of a light source
+	XMFLOAT3 LightVecW;
+
+	XMFLOAT4 AmbientMtrl;
+	XMFLOAT4 AmbientLight;
+
+	XMFLOAT4 SpecularMtrl;
+	XMFLOAT4 SpecularLight;
+	float SpecularPower;
+	XMFLOAT3 EyePosW;
 };
 
 struct VertexType
@@ -56,6 +80,8 @@ private:
 	ID3D11Texture2D*        _depthStencilBuffer;
 	ID3D11RasterizerState*  _wireFrame;
 	ID3D11RasterizerState*  _solidObj;
+	ID3D11ShaderResourceView* _pTextureRV;
+	ID3D11SamplerState* _pSamplerLinear;
 private:
 	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
 	HRESULT InitDevice();
@@ -70,6 +96,9 @@ private:
 	UINT _WindowHeight;
 	UINT _WindowWidth;
 
+	//XMFLOAT3 lightDirection;
+	//XMFLOAT4 diffuseMaterial;
+	//XMFLOAT4 diffuseLight;
 public:
 	Application();
 	~Application();

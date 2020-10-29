@@ -1,5 +1,7 @@
 #include "Application.h"
 
+using namespace std;
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PAINTSTRUCT ps;
@@ -40,6 +42,8 @@ Application::Application()
     _pPyramidVertexBuffer = nullptr;
     _pIndexBuffer = nullptr;
     _pConstantBuffer = nullptr;
+    _pTextureRV = nullptr;
+    _pSamplerLinear = nullptr;
 }
 
 Application::~Application()
@@ -50,9 +54,9 @@ Application::~Application()
 HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 {
     if (FAILED(InitWindow(hInstance, nCmdShow)))
-	{
+    {
         return E_FAIL;
-	}
+    }
 
     RECT rc;
     GetClientRect(_hWnd, &rc);
@@ -66,7 +70,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         return E_FAIL;
     }
 
-	// Initialize the world matrix
+    // Initialize the world matrix
     for (int i = 0; i < 5; i++)
     {
         XMFLOAT4X4 world;
@@ -75,14 +79,15 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     }
     // Initialize the view matrix
-	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, 15.0f, 0.0f);
-	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, 25.0f, 0.0f);
+    XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+    XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(Eye, At, Up));
-
+    XMStoreFloat4x4(&_view, XMMatrixLookAtLH(Eye, At, Up));
+    
     // Initialize the projection matrix
-	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT) _WindowHeight, 0.01f, 100.0f));
+    XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT)_WindowHeight, 0.01f, 100.0f));
+    CreateDDSTextureFromFile(_pd3dDevice, L"Crate_COLOR.dds", nullptr, &_pTextureRV);
 
 	return S_OK;
 }
@@ -132,8 +137,9 @@ HRESULT Application::InitShadersAndInputLayout()
     // Define the input layout
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = ARRAYSIZE(layout);
@@ -143,7 +149,7 @@ HRESULT Application::InitShadersAndInputLayout()
                                         pVSBlob->GetBufferSize(), &_pVertexLayout);
 	pVSBlob->Release();
 
-	if (FAILED(hr))
+    if (FAILED(hr))
         return hr;
 
     // Set the input layout
@@ -157,22 +163,77 @@ HRESULT Application::InitVertexBuffer()
 	HRESULT hr;
 
     // Create vertex buffer
-    SimpleVertex cubeVertices[] =
+    SimpleVertexNormal cubeVertices[] =
     {
-        { XMFLOAT3( -1.0f, 1.0f, -1.0f ), XMFLOAT4( 0.0f, 0.0f, 1.0f, 1.0f ) },
-        { XMFLOAT3( 1.0f, 1.0f, -1.0f ), XMFLOAT4( 0.0f, 1.0f, 1.0f, 1.0f ) },
-        { XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f ) },
-        { XMFLOAT3( 1.0f, -1.0f, -1.0f ), XMFLOAT4( 1.0f, 0.0f, 0.0f, 1.0f ) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.5f, 0.5f, 1.0f, 1.0f) }
+        /*
+        { XMFLOAT3( -1.0f, 1.0f, -1.0f ), XMFLOAT4(1, 1, 0, 0) },
+        { XMFLOAT3( 1.0f, 1.0f, -1.0f ), XMFLOAT4(1, 1, 0, 0) },
+        { XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT4(1, 1, 0, 0) },
+        { XMFLOAT3( 1.0f, -1.0f, -1.0f ), XMFLOAT4(1, 1, 0, 0) },
+        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1, 1, 0, 0)},
+        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1, 1, 0, 0) },
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1, 1, 0, 0) },
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1, 1, 0, 0) }
+        */
+        //front face
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,0)},
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,1) },
+        
+        { XMFLOAT3(1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,1) },
+        
+        //back face
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(0,0) },
+        { XMFLOAT3(-1, 1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,0) },
+
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, 0,1, 0), XMFLOAT2(0,0) },
+        
+        //left face
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(-1, 1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,0) },
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,1) },
+
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,0) },
+
+        //right face
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,0) },
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,0) },
+
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,0) },
+        { XMFLOAT3(1, -1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,1) },
+
+        //top face
+        { XMFLOAT3(-1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,0) },
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,0) },
+
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,1) },
+
+        //bottom face
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,0) },
+
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,0) },
+        { XMFLOAT3(1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,1) },
     };
 
     D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(SimpleVertex) * 8;
+    bd.ByteWidth = sizeof(SimpleVertexNormal) * 36;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -260,6 +321,7 @@ HRESULT Application::InitIndexBuffer()
     // Create index buffer
     WORD indices[] =
     {
+        /*
         //back face
         0,1,2,
         2,1,3,
@@ -278,6 +340,8 @@ HRESULT Application::InitIndexBuffer()
         //bottom face
         7,6,2,
         7,2,3
+        */
+        0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35
     };
 
     D3D11_BUFFER_DESC bd;
@@ -378,7 +442,7 @@ HRESULT Application::InitIndexBuffer()
 
 	return S_OK;
 }
-
+#include "iostream"
 HRESULT Application::InitPlaneIndexBuffer(int vWidth, int vHeight)
 {
     HRESULT hr;
@@ -392,20 +456,20 @@ HRESULT Application::InitPlaneIndexBuffer(int vWidth, int vHeight)
     {
         for (UINT j = 0; j < vHeight - 1; ++j)
         {
-            indices[k] = i * vHeight + j;
-            indices[k + 1] = i * vHeight + j + 1;
-            indices[k + 2] = (i + 1) * vHeight + j;
-            indices[k + 3] = (i + 1) * vHeight + j;
-            indices[k + 4] = i * vHeight + j + 1;
-            indices[k + 5] = (i + 1) * vHeight + j + 1;
+            indices[k + 0] = i * vHeight + j;  //0
+            indices[k + 1] = i * vHeight + j + 1; //1
+            indices[k + 2] = (i + 1) * vHeight + j;  //3
+            indices[k + 3] = (i + 1) * vHeight + j;  //3
+            indices[k + 4] = i * vHeight + j + 1;  //1
+            indices[k + 5] = (i + 1) * vHeight + j + 1; //2
             k += 6;
         }
     }
-
+    
     ZeroMemory(&bd, sizeof(bd));
 
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(indices) * (vWidth - 1) * (vHeight - 1) * 6;
+    bd.ByteWidth = sizeof(WORD) * ((vWidth-1) * (vHeight-1) * 6);
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
 
@@ -433,7 +497,11 @@ HRESULT Application::InitPlaneVertexBuffer(UINT width, UINT depth, UINT Wverts, 
     float dx = width / (Wverts - 1);
     float dz = depth / (Dverts - 1);
 
-    SimpleVertex* vertices = new SimpleVertex[vCount];
+    float du = 1.0f / (Wverts - 1);
+    float dv = 1.0f / (Dverts - 1);
+
+
+    SimpleVertexNormal* vertices = new SimpleVertexNormal[vCount];
 
     for (UINT i = 0; i < Wverts; ++i)
     {
@@ -442,14 +510,18 @@ HRESULT Application::InitPlaneVertexBuffer(UINT width, UINT depth, UINT Wverts, 
         {
             float x = -hWidth + j * dx;
             vertices[i * Dverts + j].Pos = XMFLOAT3(x, 0, z);
-            vertices[i * Dverts + j].Color = XMFLOAT4(1, 0, 0, 0);
+            vertices[i * Dverts + j].normal = XMFLOAT4(0, -1, 0, 0);
+            // Ignore for now, used for texturing.
+            vertices[i * Dverts + j].TexC.x = j * du;
+            vertices[i * Dverts + j].TexC.y = i * dv;
+
         }
     }
 
     ZeroMemory(&bd, sizeof(bd));
 
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(SimpleVertex) * vCount;
+    bd.ByteWidth = sizeof(SimpleVertexNormal) * vCount;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
 
@@ -623,15 +695,27 @@ HRESULT Application::InitDevice()
     vp.TopLeftY = 0;
     _pImmediateContext->RSSetViewports(1, &vp);
 
+    // Create the sample state
+    D3D11_SAMPLER_DESC sampDesc;
+    ZeroMemory(&sampDesc, sizeof(sampDesc));
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
+
 	InitShadersAndInputLayout();
 
 	InitVertexBuffer();
 
 	InitIndexBuffer();
 
-    InitPlaneVertexBuffer(100, 100, 101, 101);
+    InitPlaneVertexBuffer(10, 10, 11, 11);
 
-    InitPlaneIndexBuffer(101,101);
+    InitPlaneIndexBuffer(11,11);
 
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -658,7 +742,7 @@ HRESULT Application::InitDevice()
     D3D11_RASTERIZER_DESC soliddesc;
     ZeroMemory(&soliddesc, sizeof(D3D11_RASTERIZER_DESC));
     soliddesc.FillMode = D3D11_FILL_SOLID;
-    soliddesc.CullMode = D3D11_CULL_BACK;
+    soliddesc.CullMode = D3D11_CULL_NONE;
     hr = _pd3dDevice->CreateRasterizerState(&soliddesc, &_solidObj);
     _pImmediateContext->RSSetState(_solidObj);
 
@@ -743,12 +827,12 @@ void Application::Draw()
     //
     // Clear the back buffer
     //
-    float ClearColor[4] = {0.0f, 0.125f, 0.3f, 1.0f}; // red,green,blue,alpha
+    float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
     _pImmediateContext->ClearRenderTargetView(_pRenderTargetView, ClearColor);
     _pImmediateContext->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     // Set vertex buffer
-    UINT stride = sizeof(SimpleVertex);
+    UINT stride = sizeof(SimpleVertexNormal);
     UINT offset = 0;
     for (int i = 0; i < 5; i++)
     {
@@ -762,19 +846,32 @@ void Application::Draw()
         cb.mWorld = XMMatrixTranspose(world);
         cb.mView = XMMatrixTranspose(view);
         cb.mProjection = XMMatrixTranspose(projection);
+        
+        cb.LightVecW = { 0,3,25 };
+        cb.EyePosW = { 0, 0, 25 };
+
+        //ambient is the actual colour of the object
+        cb.AmbientMtrl = { 1,.2,.2,.2 };
+        cb.AmbientLight = { 1,.2,.2,.2 };
+
+        //light that reflect off of other objects in the world
+        cb.DiffuseMtrl = { 1,.5,.4,.1 };
+        cb.DiffuseLight = { 0,0,0,1 };
+
+        cb.SpecularMtrl = { 1,.5,.5,.5 };
+        cb.SpecularLight = { 1,.8,.8,.8 };
+        cb.SpecularPower = 10;
 
         _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
-
-        //
         // Renders a triangle
-        //
-
+        _pImmediateContext->PSSetSamplers(0, 1, &_pSamplerLinear);
+        _pImmediateContext->PSSetShaderResources(0, 1, &_pTextureRV);
         _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
         _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
         _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
         if (i >= 2)
-        { 
+        {
             // Set vertex buffer
             _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVertexBuffer, &stride, &offset);
             // Set index buffer
@@ -787,7 +884,7 @@ void Application::Draw()
             _pImmediateContext->IASetVertexBuffers(0, 1, &_pVertexBuffer, &stride, &offset);
             // Set index buffer
             _pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-            _pImmediateContext->RSSetState(_wireFrame);
+            _pImmediateContext->RSSetState(_solidObj);
             _pImmediateContext->DrawIndexed(36, 0, 0);
         }
     }
@@ -797,12 +894,27 @@ void Application::Draw()
     //
     // Update variables
     //
-    ConstantBuffer cb;
-    cb.mWorld = XMMatrixTranspose(world);
-    cb.mView = XMMatrixTranspose(view);
-    cb.mProjection = XMMatrixTranspose(projection);
+    ConstantBuffer cb1;
+    cb1.mWorld = XMMatrixTranspose(world);
+    cb1.mView = XMMatrixTranspose(view);
+    cb1.mProjection = XMMatrixTranspose(projection);
 
-    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+    cb1.LightVecW = { 0,0,0 };
+    cb1.EyePosW = { 0, 0, 25 };
+
+    //ambient is the actual colour of the object
+    cb1.AmbientMtrl = { 1,.2,.2,.2 };
+    cb1.AmbientLight = { 1,.2,.2,.2 };
+
+    //light that reflect off of other objects in the world
+    cb1.DiffuseMtrl = { 1,.5,.4,.1 };
+    cb1.DiffuseLight = { 0,0,0,1 };
+
+    cb1.SpecularMtrl = { 1,.5,.5,.5 };
+    cb1.SpecularLight = { 1,.8,.8,.8 };
+    cb1.SpecularPower = 10;
+
+    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
     //
     // Renders a triangle
@@ -816,8 +928,8 @@ void Application::Draw()
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pGroundPlaneVertexBuffer, &stride, &offset);
     // Set index buffer
     _pImmediateContext->IASetIndexBuffer(_pGroundPlaneIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->RSSetState(_wireFrame);
-    _pImmediateContext->DrawIndexed(60000, 0, 0);
+    _pImmediateContext->RSSetState(_solidObj);
+    _pImmediateContext->DrawIndexed(600, 0, 0);
     //
     // Present our back buffer to our front buffer
     //

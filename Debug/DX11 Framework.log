@@ -1,19 +1,19 @@
 ﻿  Application.cpp
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(391,24): warning C4018: '<': signed/unsigned mismatch
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(393,28): warning C4018: '<': signed/unsigned mismatch
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(395,38): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(396,46): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(397,48): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(398,48): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(399,46): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(400,52): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(428,18): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(430,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(431,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(433,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(434,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(436,47): warning C4244: 'initializing': conversion from 'float' to 'unsigned int', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(452,41): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(720,70): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(728,116): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(455,24): warning C4018: '<': signed/unsigned mismatch
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(457,28): warning C4018: '<': signed/unsigned mismatch
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(459,42): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(460,46): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(461,48): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(462,48): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(463,46): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(464,52): warning C4244: '=': conversion from 'UINT' to 'WORD', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(492,18): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(494,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(495,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(497,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(498,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(504,59): warning C4244: 'initializing': conversion from 'float' to 'unsigned int', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(524,47): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(804,70): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\domda\Desktop\Github\directX---grathics-\Application.cpp(812,116): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
   DX11 Framework.vcxproj -> C:\Users\domda\Desktop\Github\directX---grathics-\Debug\DX11 Framework.exe
