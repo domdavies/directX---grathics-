@@ -38,12 +38,14 @@ struct VS_OUTPUT
     float3 normalW : NORMAL;
     float3 eye : POSITION;
     float2 Tex : TEXCOORD;
+    //float3 Tan : TANGENT;
+    //float3  Bitan : BITANGENT;
 };
 
 //----------------------------------------------------------------------------
 // Vertex Shader - Implements Gouraud Shading using Diffuse lighting only
 //----------------------------------------------------------------------------
-VS_OUTPUT VS(float4 Pos : POSITION, float3 NormalL : NORMAL, float2 Tex : TEXCOORD)
+VS_OUTPUT VS(float4 Pos : POSITION, float3 NormalL : NORMAL, float2 Tex : TEXCOORD /*,float3 Tan : TANGENT, float3  Bitan : BITANGENT*/)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     output.Pos = mul(Pos, World); 

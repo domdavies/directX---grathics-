@@ -140,6 +140,8 @@ HRESULT Application::InitShadersAndInputLayout()
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+     //   { "TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+     //   { "BITANGENT", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = ARRAYSIZE(layout);
@@ -176,58 +178,58 @@ HRESULT Application::InitVertexBuffer()
         { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1, 1, 0, 0) }
         */
         //front face
-        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,0) },
-        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,0)},
-        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,0) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/ },
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,0)/*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,1)/*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/ },
         
-        { XMFLOAT3(1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,1) },
-        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,0) },
-        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,1)/*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/ },
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(1,0) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 0, -1, 0), XMFLOAT2(0,1) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
         
         //back face
-        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,1) },
-        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(0,0) },
-        { XMFLOAT3(-1, 1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,1) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(0,0) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(-1, 1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,0) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
 
-        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,1) },
-        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(0,1) },
-        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, 0,1, 0), XMFLOAT2(0,0) },
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(1,1) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 0, 1, 0), XMFLOAT2(0,1) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, 0,1, 0), XMFLOAT2(0,0) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
         
         //left face
-        { XMFLOAT3(-1, 1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,0) },
-        { XMFLOAT3(-1, 1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,0) },
-        { XMFLOAT3(-1, -1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,0) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(-1, 1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,0) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,1) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
 
-        { XMFLOAT3(-1, -1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,1) },
-        { XMFLOAT3(-1, -1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,1) },
-        { XMFLOAT3(-1, 1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(0,1)/*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/ },
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,1)/*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/ },
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(1, 0, 0, 0), XMFLOAT2(1,0) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
 
         //right face
-        { XMFLOAT3(1, 1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,0) },
-        { XMFLOAT3(1, -1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,1) },
-        { XMFLOAT3(1, 1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,0)/*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/ },
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,1)/*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/ },
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,0) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
 
-        { XMFLOAT3(1, -1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,1) },
-        { XMFLOAT3(1, 1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,0) },
-        { XMFLOAT3(1, -1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,1) },
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(1,1) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,0) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
+        { XMFLOAT3(1, -1, 1), XMFLOAT4(-1, 0, 0, 0), XMFLOAT2(0,1) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
 
         //top face
-        { XMFLOAT3(-1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,0) },
-        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,1) },
-        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,0) },
+        { XMFLOAT3(-1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,0) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,1)/*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/ },
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,0) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
 
-        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,0) },
-        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,1) },
-        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(1, 1, -1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,0)/*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/ },
+        { XMFLOAT3(-1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(0,1) /*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/},
+        { XMFLOAT3(1, 1, 1), XMFLOAT4(0, -1, 0, 0), XMFLOAT2(1,1)/*XMFLOAT3(-1,0,0), XMFLOAT3(0,-1,0)*/ },
 
         //bottom face
-        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,0) },
-        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,1) },
-        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,0) },
+        { XMFLOAT3(-1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,0) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,1) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,0) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
 
-        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,0) },
-        { XMFLOAT3(1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,1) },
-        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,1) },
+        { XMFLOAT3(1, -1, -1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,0)/*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/ },
+        { XMFLOAT3(1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(0,1) /*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/},
+        { XMFLOAT3(-1, -1, 1), XMFLOAT4(0, 1, 0, 0), XMFLOAT2(1,1)/*XMFLOAT3(1,0,0), XMFLOAT3(0,1,0)*/ },
     };
 
     D3D11_BUFFER_DESC bd;
